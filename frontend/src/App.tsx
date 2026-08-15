@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import { renderContent } from "./markdown";
 
@@ -31,13 +31,27 @@ function App() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const confirmTimerRef = useRef<number | null>(null);
 
+
+
+  // =====================================================
+  // Auto-scroll whenever the conversation changes
+  // =====================================================
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText, loading]);
 
+  // =====================================================
+  // Load conversations on start
+  // =====================================================
+
   useEffect(() => {
     loadConversations();
   }, []);
+
+  // =====================================================
+  // Autosize the composer textarea
+  // =====================================================
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -45,6 +59,10 @@ function App() {
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
   }, [input]);
+
+  // =====================================================
+  // Auto-dismiss error banner
+  // =====================================================
 
   useEffect(() => {
     if (!error) return;
@@ -103,6 +121,10 @@ function App() {
     setInput("");
     setError(null);
   };
+
+  // =====================================================
+  // Send a message, streaming the reply token-by-token
+  // =====================================================
 
   const sendMessage = async () => {
     const userMessage = input.trim();
@@ -171,6 +193,7 @@ function App() {
       }
 
       if (!settled && fullText) {
+        // Stream ended without an explicit "done" event -- still show what we got.
         setMessages((prev) => [...prev, { role: "assistant", content: fullText }]);
         setStreamingText(null);
         await loadConversations();
@@ -190,6 +213,10 @@ function App() {
       sendMessage();
     }
   };
+
+  // =====================================================
+  // Rename a conversation
+  // =====================================================
 
   const beginRename = (conversation: Conversation) => {
     setRenamingId(conversation.id);
@@ -218,6 +245,10 @@ function App() {
       setError("Unable to rename this conversation.");
     }
   };
+
+  // =====================================================
+  // Delete a conversation (click once to arm, again to confirm)
+  // =====================================================
 
   const handleDeleteClick = (id: number) => {
     if (confirmDeleteId === id) {
@@ -254,6 +285,10 @@ function App() {
 
   return (
     <div className="app">
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
+
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="brand">
@@ -336,6 +371,10 @@ function App() {
         </div>
       </aside>
 
+      {/* =================================================
+          MAIN CHAT
+      ================================================= */}
+
       <main className="chat-container">
         <header className="chat-header">
           <div>
@@ -417,5 +456,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
